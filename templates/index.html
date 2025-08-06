@@ -13,7 +13,6 @@
     <h1>Reddact Labs </h1>
     <p class="subtitle">Securely find and redact sensitive information from your documents with confidence.</p>
 
-    <!-- This block will show any error messages from the server -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -24,13 +23,12 @@
 
     <form method="post" action="/process" enctype="multipart/form-data" class="upload-form">
         
-        <!-- File Drop Zone -->
         <div class="file-drop-zone" id="drop-zone">
             <input type="file" name="file" id="file-input" required>
             <p id="drop-zone-text">Drag & drop your file here, or <span>click to browse</span>.</p>
         </div>
 
-        <!-- Redaction Type Selector -->
+        <!-- Redaction Type -->
         <div class="form-group">
             <label for="redaction_type">Select Redaction Type:</label>
             <select name="redaction_type" id="redaction_type">
@@ -43,18 +41,16 @@
     </form>
 </div>
 
-<!-- JavaScript for Drag-and-Drop functionality -->
+
 <script>
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const dropZoneText = document.getElementById('drop-zone-text');
 
-    // Clicking the drop zone opens the file browser
     dropZone.addEventListener('click', () => {
         fileInput.click();
     });
 
-    // When a file is chosen via the browser, update the text
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) {
             dropZoneText.textContent = `Selected file: ${fileInput.files[0].name}`;
@@ -63,9 +59,8 @@
         }
     });
 
-    // Drag and Drop event listeners
     dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault(); // Prevent default browser behavior
+        e.preventDefault(); 
         dropZone.classList.add('dragover');
     });
 
@@ -79,7 +74,7 @@
         
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-            fileInput.files = files; // Assign the dropped file to the hidden input
+            fileInput.files = files;
             dropZoneText.textContent = `Selected file: ${files[0].name}`;
             dropZone.style.borderColor = '#1a7e28';
             dropZone.style.backgroundColor = '#e8f5e9';

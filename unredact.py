@@ -1,27 +1,23 @@
-# In unredact.py
 import sys
 import json
 from cryptography.fernet import Fernet
 
 def load_key():
-    """Loads the secret key from the file."""
     try:
         return open("secret.key", "rb").read()
     except FileNotFoundError:
-        print("❌ ERROR: secret.key not found. Make sure it's in the same directory.")
+        print("ERROR: secret.key not found. Make sure it's in the same directory.")
         sys.exit(1)
 
 def load_redaction_db():
-    """Loads the redaction database."""
     try:
         with open("redaction_db.json", 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        print("❌ ERROR: redaction_db.json not found. No reversible redactions have been made yet.")
+        print("ERROR: redaction_db.json not found. No reversible redactions have been made yet.")
         sys.exit(1)
 
 def unredact_value(redaction_id):
-    """Finds a redaction ID and decrypts its original value."""
     key = load_key()
     f_cipher = Fernet(key)
     db = load_redaction_db()
@@ -37,9 +33,9 @@ def unredact_value(redaction_id):
             print(f"  Original Value: {decrypted_data}")
             print("-------------------------\n")
         except Exception as e:
-            print(f"❌ ERROR: Failed to decrypt data. The secret key may have changed. Error: {e}")
+            print(f"ERROR: Failed to decrypt data. The secret key may have changed. Error: {e}")
     else:
-        print(f"❌ ERROR: Redaction ID '{redaction_id}' not found in the database.")
+        print(f"ERROR: Redaction ID '{redaction_id}' not found in the database.")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

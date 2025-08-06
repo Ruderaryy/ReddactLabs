@@ -1,13 +1,10 @@
-# In reddact.py (The Complete and Corrected File)
-
-# --- IMPORTS ---
 import os
 import re
 import sys
 import json
 import uuid
 import docx
-import fitz  # PyMuPDF
+import fitz 
 import spacy
 from faker import Faker
 from PIL import Image, ImageDraw
@@ -15,7 +12,6 @@ import pytesseract
 from cryptography.fernet import Fernet
 from bs4 import BeautifulSoup, Comment, CData, ProcessingInstruction, Doctype
 
-# --- INITIALIZATION ---
 fake = Faker()
 nlp = spacy.load("en_core_web_sm")
 regex_patterns = {
@@ -25,11 +21,10 @@ regex_patterns = {
     "CREDIT_CARD": r'\b(?:\d[ -]*?){13,16}\b'
 }
 
-# --- REVERSIBLE REDACTION HELPERS ---
 def load_key():
     key = os.environ.get('SECRET_ENCRYPTION_KEY')
     if key is None:
-        raise ValueError("CRITICAL: SECRET_ENCRYPTION_KEY is not set in your .env file!")
+        raise ValueError("ERROR: SECRET_ENCRYPTION_KEY is not set in your .env file!")
     return key.encode()
 
 def load_redaction_db():
@@ -42,14 +37,13 @@ def save_redaction_db(db):
     with open("redaction_db.json", 'w', encoding='utf-8') as f:
         json.dump(db, f, indent=2)
 
-# --- CORE REDACTION LOGIC ---
+
 def redact_text(text, redaction_type="blackout", f_cipher=None, db=None):
     audit_log = []
     
-    # Process a copy of the text to avoid modification-during-iteration issues
     text_to_process = text
 
-    # Handle NER Entities first
+    #NER Entities 
     doc = nlp(text_to_process)
     for ent in doc.ents:
         if ent.label_ in ["PERSON", "GPE", "ORG"]:
@@ -69,7 +63,7 @@ def redact_text(text, redaction_type="blackout", f_cipher=None, db=None):
             audit_log.append({"original": original_value, "redacted_to": replacement, "type": ent.label_})
             text = text.replace(original_value, replacement)
 
-    # Handle Regex Patterns
+    #Regex Patterns
     for pii_type, pattern in regex_patterns.items():
         matches = list(re.finditer(pattern, text))
         for match in matches:
@@ -105,11 +99,11 @@ def redact_structured_data(data, audit_collector, redaction_type, f_cipher, db):
         return redacted_string
     return data
 
-# --- FILE PROCESSING HUB ---
+
 def process_file(file_path, redaction_type="blackout"):
     print(f"Processing '{file_path}' with redaction type: '{redaction_type}'")
     master_audit_log = []
-    output_filename = "" # Initialize to guarantee it exists
+    output_filename = "" 
     original_filename = os.path.basename(file_path)
 
     f_cipher, redaction_db = None, None
@@ -123,19 +117,14 @@ def process_file(file_path, redaction_type="blackout"):
             doc = fitz.open(file_path)
             for page in doc:
                 text, audit = redact_text(page.get_text("text"), redaction_type, f_cipher, redaction_db)
-                # Note: This doesn't apply redactions back to the PDF visually in reversible mode.
-                # For this example, we're focusing on text extraction and replacement.
-                # A full implementation would require drawing over areas like the blackout mode.
             output_filename = original_filename.replace(".pdf", "_redacted.pdf")
-            # doc.save(output_filename) # This would save the visual blackout version if implemented
 
         elif file_path.lower().endswith((".png", ".jpg", ".jpeg")):
             img = Image.open(file_path)
-            # Image redaction is inherently blackout. We will log what would be redacted.
             full_text = pytesseract.image_to_string(img)
             _, audit_entries = redact_text(full_text, redaction_type, f_cipher, redaction_db)
             master_audit_log.extend(audit_entries)
-            # Perform visual blackout
+
             draw = ImageDraw.Draw(img)
             ocr_data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
             for i in range(len(ocr_data['text'])):
@@ -185,7 +174,7 @@ def process_file(file_path, redaction_type="blackout"):
 
         print(f"Successfully created redacted file: {output_filename}")
 
-        # --- Save Databases and Audit Logs (After Processing) ---
+        # -------- Save Databases and Audit Logs ---------
         if redaction_type == "reversible":
             save_redaction_db(redaction_db)
             print("Successfully updated the reversible redaction database.")
@@ -197,10 +186,8 @@ def process_file(file_path, redaction_type="blackout"):
                 json.dump(master_audit_log, f, indent=4)
             print(f"Successfully saved audit log to {audit_filename}")
         
-        # This is the single, reliable return statement for the web app
         return output_filename
 
     except Exception as e:
-        # Re-raise the exception so the web app can catch it and show an error
-        print(f"FATAL ERROR during processing: {e}")
+        print(f"ERROR during processing: {e}")
         raise e

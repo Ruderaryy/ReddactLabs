@@ -4,7 +4,7 @@ secret.key
 redaction_db.json
 
 venv/
-_pycache_
+__pycache__
 
 uploads/
 /uploads/

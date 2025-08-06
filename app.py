@@ -1,27 +1,22 @@
-import os # Make sure os is imported
+import os
 from dotenv import load_dotenv
 load_dotenv()
 from flask import Flask, request, render_template, send_from_directory, flash, redirect
 from werkzeug.utils import secure_filename
 
-# Import our main processing function from our logic file
-# We give it an alias to make it clear what it does
 from reddact import process_file as process_redaction_file
 
-# --- Flask App Configuration ---
+#Flask App Configuration
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'docx', 'json', 'xml'}
-
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-# A secret key is required by Flask to show user messages ("flashing")
 app.secret_key = os.environ.get('FLASK_SECRET_KEY')
 
 def allowed_file(filename):
     """Checks if the uploaded file has an allowed extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# --- Web Page Routes ---
 @app.route('/')
 def index():
     """This function runs when a user visits the main page. It just shows the HTML."""
@@ -56,9 +51,8 @@ def process_upload():
         flash('File type not allowed. Please upload a supported file.', 'error')
         return redirect('/')
 
-# --- Main Execution Block ---
+
 if __name__ == '__main__':
-    # Ensure the upload folder exists before starting the app
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    # Run the Flask web server. debug=True allows it to auto-reload when you save changes.
+    #debug=True auto-reload when you save changes.
     app.run(host='0.0.0.0', port=5000, debug=True)
