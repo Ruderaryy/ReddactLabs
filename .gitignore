@@ -1,0 +1,12 @@
+.env
+
+secret.key
+redaction_db.json
+
+venv/
+_pycache_
+
+uploads/
+/uploads/
+*_redacted.*
+*_audit.json
